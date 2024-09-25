@@ -1,0 +1,5 @@
+{
+	"renderer": "@revideo/renderer",
+	"player-react": "@revideo/player-react",
+	"revideo-ffmpeg": "@revideo/ffmpeg"
+}

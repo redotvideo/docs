@@ -1,0 +1,13 @@
+{
+	"index": "Welcome",
+	"common-issues": {
+		"title": "Common Issues",
+		"display": "hidden"
+	},
+	"code-snippets": "Code Snippets",
+	"upgrading": "Upgrading",
+	"api-reference": "API",
+	"get-help": "Get Help",
+	"guide": "Guide",
+	"platform": "Platform"
+}

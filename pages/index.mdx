@@ -1,5 +1,24 @@
-# Revideo Docs
+# Welcome to Revideo!
 
-```tsx
-const test = <div>asd</div>;
-```
+Revideo is an open-source framework for programmatic video editing. It lets you
+create video templates in Typescript and provides an API to render these video
+templates with dynamic inputs. It also provides a player component that you can
+embed into your website to let users preview videos before exporting them to
+mp4. Developers use Revideo to automate certain video editing tasks or to build
+entire web-based video editors.
+
+This project is often used as an MIT-licensed alternative to [Remotion](https://remotion.dev). Our rendering is currently
+around 5x faster on the same hardware (and therefore 5x cheaper) than Remotion's, while also being easier to work
+with when it comes to complex animations (we're of course biased here).
+
+Revideo is forked from
+[Motion Canvas](https://github.com/motion-canvas/motion-canvas), a code-based video-editor that
+lets you create animations with code. Changes we've made to support our use-case include:
+
+-   We've taken Motion Canvas' core animation engine and made it
+    embeddable into front-end applications through a `<Player />` component.
+-   Added performance optimizations to make rendering up to 50x faster
+    when using videos inside your scenes.
+-   Added headless rendering so you can render videos on the server.
+-   Fixed a lot of bugs and added new features (as well as removed a lot of
+    complexity from the original project).
