@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+	--nextra-primary-hue: 126deg;
+	--nextra-primary-saturation: 100%;
+	--nextra-primary-lightness: 30%;
+}
+
+:is(html[class~="dark"] .dark\:nx-bg-primary-300\/10) {
+	background-color: #1f1f1f;
+}
+
+.nx-bg-primary-700\/5 {
+	background-color: #f6f6f6;
+}

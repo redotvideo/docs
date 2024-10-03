@@ -12,9 +12,11 @@
 	"author": "revideo",
 	"license": "MIT",
 	"dependencies": {
+		"crisp-sdk-web": "^1.0.25",
 		"next": "^14.2.13",
 		"nextra": "^2.13.4",
 		"nextra-theme-docs": "^2.13.4",
+		"posthog-js": "^1.165.0",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0"
 	},
@@ -23,8 +25,11 @@
 		"url": "git+https://github.com/havenhq/revideo.git"
 	},
 	"devDependencies": {
-		"@types/node": "22.6.1",
+		"@types/node": "^22.6.1",
+		"autoprefixer": "^10.4.20",
+		"postcss": "^8.4.47",
 		"prettier": "^3.3.3",
+		"tailwindcss": "^3.4.13",
 		"typescript": "5.6.2"
 	}
 }

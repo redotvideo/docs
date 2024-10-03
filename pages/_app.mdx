@@ -1,0 +1,40 @@
+import "./style.css";
+import Script from "next/script";
+import {useEffect} from "react";
+import {useRouter} from "next/router";
+import posthog from "posthog-js";
+import {PostHogProvider} from "posthog-js/react";
+import {CrispWidget} from "../components/support-chat";
+
+export default function App({Component, pageProps}) {
+	const router = useRouter();
+	useEffect(() => {
+		// Initialize PostHog
+		if (typeof window !== "undefined") {
+			posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
+				api_host: "https://eu.posthog.com",
+				ui_host: "https://eu.posthog.com",
+				// Enable debug mode in development
+				loaded: (posthog) => {
+					if (process.env.NODE_ENV === "development") posthog.debug();
+				},
+			});
+		}
+		// Track page views
+		const handleRouteChange = () => {
+			posthog.capture("$pageview");
+		};
+		router.events.on("routeChangeComplete", handleRouteChange);
+		return () => {
+			router.events.off("routeChangeComplete", handleRouteChange);
+		};
+	}, []);
+	return (
+		<div>
+			<PostHogProvider client={posthog}>
+				<Component {...pageProps} />
+				{process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID ? <CrispWidget /> : null}
+			</PostHogProvider>
+		</div>
+	);
+}
