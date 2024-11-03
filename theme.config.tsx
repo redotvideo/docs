@@ -3,6 +3,8 @@ import {Logo} from "./components/logo";
 import {IconDiscord} from "./components/icons/discord";
 import {GithubMenuBadge} from "./components/github-badge";
 import {constants} from "./components/constants";
+import {Pre} from "nextra/components";
+import {DocsPlayer} from "./components/player";
 
 export default {
 	logo: <Logo />,
@@ -46,5 +48,29 @@ export default {
 				<GithubMenuBadge />
 			</>
 		),
+	},
+	components: {
+		pre: ({children, ...props}) => {
+			// Check if the filename field is a valid JSON. If so, it's a player block.
+			// If not, it's a regular code block.
+			if (!props.filename) {
+				return <Pre {...props}>{children}</Pre>;
+			}
+
+			let code = "";
+			try {
+				const metaInfo = JSON.parse(decodeURIComponent(props.filename));
+				if (metaInfo.player) {
+					console.log(metaInfo);
+					props.filename = metaInfo.filename;
+					code = metaInfo.code;
+				}
+			} catch (e) {
+				// If JSON parsing fails, it's not a player block
+				return <Pre {...props}>{children}</Pre>;
+			}
+
+			return <DocsPlayer preProps={props} preChildren={children} code={code} />;
+		},
 	},
 } as ThemeConfig;
