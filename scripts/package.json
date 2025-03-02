@@ -1,0 +1,13 @@
+{
+	"name": "docs-conversion-scripts",
+	"version": "1.0.0",
+	"description": "Scripts for converting Docusaurus docs to Nextra format",
+	"scripts": {
+		"convert": "ts-node convert.ts"
+	},
+	"devDependencies": {
+		"@types/node": "^20.11.24",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.3.3"
+	}
+}
