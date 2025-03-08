@@ -1,5 +1,14 @@
 import fs from "fs";
 import path from "path";
+import matter from "gray-matter";
+
+interface Redirect {
+	source: string;
+	destination: string;
+	permanent: boolean;
+}
+
+let redirects: Redirect[] = [];
 
 /**
  * Create a _meta.js file for a directory
@@ -20,29 +29,47 @@ ${items.map((item) => `  '${item}': '',`).join("\n")}
 
 /**
  * Process a Docusaurus MDX file and convert it to Nextra format
- * For now, this is a simple copy as we're not handling custom components
  */
 function processMdxFile(sourcePath: string, destPath: string) {
 	// Read the source file
 	const content = fs.readFileSync(sourcePath, "utf8");
 
-	// For now, we're just copying the content as-is
-	// In a more complete implementation, we would transform Docusaurus-specific
-	// components and syntax to Nextra equivalents
+	// Parse frontmatter
+	const {data: frontmatter, content: mdxContent} = matter(content);
 
-	// Ensure the destination directory exists
+	// Handle redirects if slug is present
+	if (frontmatter.slug) {
+		const oldPath = frontmatter.slug.startsWith("/") ? frontmatter.slug : `/${frontmatter.slug}`;
+		const newPath =
+			"/" +
+			path
+				.relative(process.cwd(), destPath)
+				.replace(/^src\/content\//, "")
+				.replace(/\.(mdx?|jsx?)$/, "");
+
+		redirects.push({
+			source: oldPath,
+			destination: newPath,
+			permanent: true,
+		});
+	}
+
+	// Write only the content without frontmatter
 	const destDir = path.dirname(destPath);
 	if (!fs.existsSync(destDir)) {
 		fs.mkdirSync(destDir, {recursive: true});
 	}
 
-	// Write the file
-	fs.writeFileSync(destPath, content);
+	// Remove any empty lines at the start of mdxContent
+	const cleanContent = mdxContent.replace(/^\s+/, "");
+	fs.writeFileSync(destPath, cleanContent);
 
 	// Get relative paths for logging
 	const sourceRelative = path.relative(process.cwd(), sourcePath);
 	const destRelative = path.relative(process.cwd(), destPath);
 	console.log(`Converted: ${sourceRelative} -> ${destRelative}`);
+
+	return frontmatter;
 }
 
 /**
@@ -60,7 +87,7 @@ function processDirectory(sourceDir: string, destDir: string) {
 
 	// Track directories and files for meta generation
 	const directories: string[] = [];
-	const files: string[] = [];
+	const files: {name: string; position?: number}[] = [];
 
 	// Process each item
 	for (const item of visibleItems) {
@@ -92,17 +119,35 @@ function processDirectory(sourceDir: string, destDir: string) {
 		const destFileName = baseName === "intro" ? "index.mdx" : `${baseName}.mdx`;
 		const destPath = path.join(destDir, destFileName);
 
-		processMdxFile(sourcePath, destPath);
+		// Process the file and get its frontmatter
+		const frontmatter = processMdxFile(sourcePath, destPath);
 
+		// Add to files array with position if available
 		if (baseName !== "intro") {
-			files.push(baseName);
+			files.push({
+				name: baseName,
+				position: frontmatter.sidebar_position,
+			});
 		} else {
-			files.push("index");
+			files.push({
+				name: "index",
+				position: frontmatter.sidebar_position,
+			});
 		}
 	}
 
+	// Sort files by sidebar_position if available
+	files.sort((a, b) => {
+		if (a.position === undefined && b.position === undefined) {
+			return a.name.localeCompare(b.name);
+		}
+		if (a.position === undefined) return 1;
+		if (b.position === undefined) return -1;
+		return a.position - b.position;
+	});
+
 	// Create _meta.js file for this directory
-	const metaItems = [...files, ...directories];
+	const metaItems = [...files.map((file) => file.name), ...directories.sort()];
 	if (metaItems.length > 0) {
 		createMetaFile(destDir, metaItems);
 	}
@@ -128,6 +173,12 @@ function main() {
 	// Start the conversion process
 	console.log("Starting conversion from Docusaurus to Nextra format...");
 	processDirectory(SOURCE_DIR, DEST_DIR);
+
+	// Write out redirects
+	const redirectsPath = path.join(ROOT_DIR, "redirects.json");
+	fs.writeFileSync(redirectsPath, JSON.stringify(redirects, null, 2));
+	console.log(`Wrote ${redirects.length} redirects to ${redirectsPath}`);
+
 	console.log("Conversion complete!");
 }
 
