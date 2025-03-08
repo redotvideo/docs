@@ -113,13 +113,17 @@ export function directoryContainsMdx(dirPath: string): boolean {
 		const stats = fs.statSync(itemPath);
 
 		// If it's a directory, recursively check it
-		if (stats.isDirectory()) {
-			if (directoryContainsMdx(itemPath)) {
-				return true;
-			}
+		if (stats.isDirectory() && directoryContainsMdx(itemPath)) {
+			return true;
 		}
+
+		// Skip directories
+		if (stats.isDirectory()) {
+			continue;
+		}
+
 		// If it's an MDX file, return true
-		else if (stats.isFile() && (item.endsWith(".mdx") || item.endsWith(".md"))) {
+		if (stats.isFile() && (item.endsWith(".mdx") || item.endsWith(".md"))) {
 			return true;
 		}
 	}
@@ -146,18 +150,17 @@ export function processDirectory(sourceDir: string, destDir: string) {
 	for (const item of visibleItems) {
 		const sourcePath = path.join(sourceDir, item);
 		const stats = fs.statSync(sourcePath);
+		const isDirectory = stats.isDirectory();
 
-		// Handle directories
-		if (stats.isDirectory()) {
-			// Only process directory if it contains MDX files
-			if (directoryContainsMdx(sourcePath)) {
-				// Process subdirectory
-				const destSubDir = path.join(destDir, item);
-				processDirectory(sourcePath, destSubDir);
-				directories.push(item);
-			} else {
-				console.log(`Skipping directory without MDX files: ${sourcePath}`);
-			}
+		if (isDirectory && !directoryContainsMdx(sourcePath)) {
+			console.log(`Skipping directory without MDX files: ${sourcePath}`);
+			continue;
+		}
+
+		if (isDirectory && directoryContainsMdx(sourcePath)) {
+			const destSubDir = path.join(destDir, item);
+			processDirectory(sourcePath, destSubDir);
+			directories.push(item);
 			continue;
 		}
 
@@ -166,7 +169,7 @@ export function processDirectory(sourceDir: string, destDir: string) {
 			throw new Error(`Unexpected file type: ${sourcePath}`);
 		}
 
-		// Process file
+		// Skip non-MDX files
 		if (!item.endsWith(".mdx") && !item.endsWith(".md")) {
 			continue;
 		}
@@ -186,26 +189,27 @@ export function processDirectory(sourceDir: string, destDir: string) {
 		const frontmatter = processMdxFile(sourcePath, destPath);
 
 		// Add to files array with position if available
-		if (baseName !== "intro") {
-			files.push({
-				name: baseName,
-				position: frontmatter.sidebar_position,
-			});
-		} else {
-			files.push({
-				name: "index",
-				position: frontmatter.sidebar_position,
-			});
-		}
+		const fileName = baseName === "intro" ? "index" : baseName;
+		files.push({
+			name: fileName,
+			position: frontmatter.sidebar_position,
+		});
 	}
 
 	// Sort files by sidebar_position if available
 	files.sort((a, b) => {
+		// If both positions are undefined, sort by name
 		if (a.position === undefined && b.position === undefined) {
 			return a.name.localeCompare(b.name);
 		}
+
+		// If only a's position is undefined, it comes after b
 		if (a.position === undefined) return 1;
+
+		// If only b's position is undefined, it comes after a
 		if (b.position === undefined) return -1;
+
+		// Both have positions, sort by position
 		return a.position - b.position;
 	});
 
@@ -221,16 +225,15 @@ export function resetRedirects() {
 }
 
 export function convert(sourceDir: string, destDir: string) {
-	// Make sure the destination directory exists
-	if (!fs.existsSync(destDir)) {
-		// Create the destination directory instead of throwing an error
-		fs.mkdirSync(destDir, {recursive: true});
-		console.log(`Created destination directory: ${destDir}`);
-	} else {
-		// Clean the destination directory
+	// Clean or create the destination directory
+	if (fs.existsSync(destDir)) {
+		// Clean the destination directory if it exists
 		fs.rmSync(destDir, {recursive: true, force: true});
-		fs.mkdirSync(destDir, {recursive: true});
 	}
+
+	// Create the destination directory (either fresh or after cleaning)
+	fs.mkdirSync(destDir, {recursive: true});
+	console.log(`Destination directory ready: ${destDir}`);
 
 	// Start the conversion process
 	console.log("Starting conversion from Docusaurus to Nextra format...");
