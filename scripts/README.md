@@ -31,3 +31,15 @@ export default {
 ```
 
 The keys are the names paths to the mdx files in the same folder as the \_meta.js file. The order of the keys is the order of the sidebar items. The values are custom descriptions for the sidebar items. If the values are empty, the description will be the `#` of the first heading in the mdx file.
+
+## `:::` blocks
+
+We use `:::` blocks to add notes, warnings, and other information to the docs. We need to convert these to `:::info` blocks in the new docs.
+
+```mdx
+:::info
+This is an info block in the old docs.
+:::
+```
+
+For now, we just remove these entirely. As you can see above, the possible keywords are `note`, `tip`, `info`, `caution`, `danger`, and `experimental`.

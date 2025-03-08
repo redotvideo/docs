@@ -28,6 +28,15 @@ ${items.map((item) => `  '${item}': '',`).join("\n")}
 }
 
 /**
+ * Remove ::: blocks from the content
+ */
+function removeInfoBlocks(content: string): string {
+	// Match blocks that start with ::: and end with :::
+	// Using non-greedy match to handle multiple blocks
+	return content.replace(/:::[a-z]+\n([\s\S]*?):::/g, "");
+}
+
+/**
  * Process a Docusaurus MDX file and convert it to Nextra format
  */
 function processMdxFile(sourcePath: string, destPath: string) {
@@ -54,15 +63,18 @@ function processMdxFile(sourcePath: string, destPath: string) {
 		});
 	}
 
+	// Remove ::: blocks and clean up content
+	const cleanedContent = removeInfoBlocks(mdxContent);
+
 	// Write only the content without frontmatter
 	const destDir = path.dirname(destPath);
 	if (!fs.existsSync(destDir)) {
 		fs.mkdirSync(destDir, {recursive: true});
 	}
 
-	// Remove any empty lines at the start of mdxContent
-	const cleanContent = mdxContent.replace(/^\s+/, "");
-	fs.writeFileSync(destPath, cleanContent);
+	// Remove any empty lines at the start of cleanedContent
+	const finalContent = cleanedContent.replace(/^\s+/, "");
+	fs.writeFileSync(destPath, finalContent);
 
 	// Get relative paths for logging
 	const sourceRelative = path.relative(process.cwd(), sourcePath);
