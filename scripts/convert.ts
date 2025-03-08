@@ -2,18 +2,19 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 
-interface Redirect {
+export interface Redirect {
 	source: string;
 	destination: string;
 	permanent: boolean;
 }
 
-let redirects: Redirect[] = [];
+// Make redirects exportable for testing
+export let redirects: Redirect[] = [];
 
 /**
  * Create a _meta.js file for a directory
  */
-function createMetaFile(dirPath: string, items: string[]) {
+export function createMetaFile(dirPath: string, items: string[]) {
 	// Ensure the directory exists
 	if (!fs.existsSync(dirPath)) {
 		fs.mkdirSync(dirPath, {recursive: true});
@@ -25,12 +26,13 @@ ${items.map((item) => `  '${item}': '',`).join("\n")}
 }
 `;
 	fs.writeFileSync(path.join(dirPath, "_meta.js"), metaContent);
+	return metaContent;
 }
 
 /**
  * Remove ::: blocks from the content
  */
-function removeInfoBlocks(content: string): string {
+export function removeInfoBlocks(content: string): string {
 	// Match blocks that start with ::: and end with :::
 	// Using non-greedy match to handle multiple blocks
 	return content.replace(/:::[a-z]+\n([\s\S]*?):::/g, "");
@@ -39,7 +41,7 @@ function removeInfoBlocks(content: string): string {
 /**
  * Process a Docusaurus MDX file and convert it to Nextra format
  */
-function processMdxFile(sourcePath: string, destPath: string) {
+export function processMdxFile(sourcePath: string, destPath: string, redirectsArray: Redirect[] = redirects) {
 	// Read the source file
 	const content = fs.readFileSync(sourcePath, "utf8");
 
@@ -56,7 +58,7 @@ function processMdxFile(sourcePath: string, destPath: string) {
 				.replace(/^src\/content\//, "")
 				.replace(/\.(mdx?|jsx?)$/, "");
 
-		redirects.push({
+		redirectsArray.push({
 			source: oldPath,
 			destination: newPath,
 			permanent: true,
@@ -87,12 +89,12 @@ function processMdxFile(sourcePath: string, destPath: string) {
 /**
  * Process a directory recursively
  */
-function processDirectory(sourceDir: string, destDir: string) {
+export function processDirectory(sourceDir: string, destDir: string, redirectsArray: Redirect[] = redirects) {
 	// Delete the destination directory
 	fs.rmSync(destDir, {recursive: true, force: true});
 
 	// Read the directory contents
-	const items = fs.readdirSync(sourceDir);
+	const items = fs.readdirSync(sourceDir) || [];
 
 	// Filter out hidden files and directories
 	const visibleItems = items.filter((item) => !item.startsWith("."));
@@ -110,7 +112,7 @@ function processDirectory(sourceDir: string, destDir: string) {
 		if (stats.isDirectory()) {
 			// Process subdirectory
 			const destSubDir = path.join(destDir, item);
-			processDirectory(sourcePath, destSubDir);
+			processDirectory(sourcePath, destSubDir, redirectsArray);
 			directories.push(item);
 			continue;
 		}
@@ -132,7 +134,7 @@ function processDirectory(sourceDir: string, destDir: string) {
 		const destPath = path.join(destDir, destFileName);
 
 		// Process the file and get its frontmatter
-		const frontmatter = processMdxFile(sourcePath, destPath);
+		const frontmatter = processMdxFile(sourcePath, destPath, redirectsArray);
 
 		// Add to files array with position if available
 		if (baseName !== "intro") {
@@ -163,9 +165,14 @@ function processDirectory(sourceDir: string, destDir: string) {
 	if (metaItems.length > 0) {
 		createMetaFile(destDir, metaItems);
 	}
+
+	return {files, directories};
 }
 
-function main() {
+export function main() {
+	// Reset redirects array
+	redirects = [];
+
 	// Source and destination directories
 	const ROOT_DIR = path.resolve(process.cwd(), "..");
 	const SOURCE_DIR = path.join(ROOT_DIR, "docs-old", "docs");
@@ -192,6 +199,12 @@ function main() {
 	console.log(`Wrote ${redirects.length} redirects to ${redirectsPath}`);
 
 	console.log("Conversion complete!");
+
+	// Return a copy of the redirects array to avoid reference issues
+	return [...redirects];
 }
 
-main();
+// Only run main if this file is executed directly
+if (require.main === module) {
+	main();
+}

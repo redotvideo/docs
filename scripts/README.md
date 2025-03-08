@@ -1,3 +1,52 @@
+# Conversion Scripts
+
+This folder contains scripts to convert the old Revideo docs from their Docusaurus format to Nextra format.
+
+## Setup
+
+To set up the project, run:
+
+```bash
+npm install
+```
+
+## Running the Conversion
+
+To run the conversion script:
+
+```bash
+npm run convert
+```
+
+This will:
+
+1. Read the old Docusaurus docs from the `docs-old` folder
+2. Convert them to Nextra format in the `/src/content/` folder
+3. Generate redirects from old paths to new paths
+4. Create `_meta.js` files for navigation
+
+## Testing
+
+The scripts are thoroughly tested using Jest. To run the tests:
+
+```bash
+npm test
+```
+
+For more details about the testing setup, see the [tests README](./tests/README.md).
+
+## Code Structure
+
+The main conversion logic is in `convert.ts`, which exports the following functions:
+
+-   `removeInfoBlocks`: Removes info blocks from content
+-   `createMetaFile`: Creates \_meta.js files for navigation
+-   `processMdxFile`: Processes individual MDX files
+-   `processDirectory`: Processes directories recursively
+-   `main`: Orchestrates the conversion process
+
+Each function is designed to be testable in isolation, with clear inputs and outputs.
+
 # Conversion
 
 This folder contains scripts to convert the old Revideo docs from their Docusaurus format to Nextra format. The old Docusaurus docs are located in the `docs-old` folder. The new Nexrtra docs are located in the /src/content/ folder. Example of the new docs structre with example content is in the `src/example-content` folder.
