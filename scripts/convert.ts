@@ -85,12 +85,37 @@ export function processMdxFile(sourcePath: string, destPath: string) {
 }
 
 /**
+ * Check if a directory contains any MDX files (directly or in subdirectories)
+ */
+export function directoryContainsMdx(dirPath: string): boolean {
+	// Read the directory contents
+	const items = fs.readdirSync(dirPath);
+
+	// Check each item
+	for (const item of items) {
+		const itemPath = path.join(dirPath, item);
+		const stats = fs.statSync(itemPath);
+
+		// If it's a directory, recursively check it
+		if (stats.isDirectory()) {
+			if (directoryContainsMdx(itemPath)) {
+				return true;
+			}
+		}
+		// If it's an MDX file, return true
+		else if (stats.isFile() && (item.endsWith(".mdx") || item.endsWith(".md"))) {
+			return true;
+		}
+	}
+
+	// No MDX files found
+	return false;
+}
+
+/**
  * Process a directory recursively
  */
 export function processDirectory(sourceDir: string, destDir: string) {
-	// Delete the destination directory
-	fs.rmSync(destDir, {recursive: true, force: true});
-
 	// Read the directory contents
 	const items = fs.readdirSync(sourceDir);
 
@@ -108,10 +133,15 @@ export function processDirectory(sourceDir: string, destDir: string) {
 
 		// Handle directories
 		if (stats.isDirectory()) {
-			// Process subdirectory
-			const destSubDir = path.join(destDir, item);
-			processDirectory(sourcePath, destSubDir);
-			directories.push(item);
+			// Only process directory if it contains MDX files
+			if (directoryContainsMdx(sourcePath)) {
+				// Process subdirectory
+				const destSubDir = path.join(destDir, item);
+				processDirectory(sourcePath, destSubDir);
+				directories.push(item);
+			} else {
+				console.log(`Skipping directory without MDX files: ${sourcePath}`);
+			}
 			continue;
 		}
 
@@ -123,6 +153,11 @@ export function processDirectory(sourceDir: string, destDir: string) {
 		// Process file
 		if (!item.endsWith(".mdx") && !item.endsWith(".md")) {
 			continue;
+		}
+
+		// Create destination directory if it doesn't exist
+		if (!fs.existsSync(destDir)) {
+			fs.mkdirSync(destDir, {recursive: true});
 		}
 
 		const baseName = item.replace(/\.(mdx|md)$/, "");
@@ -175,11 +210,11 @@ export function convert(sourceDir: string, destDir: string) {
 		// Create the destination directory instead of throwing an error
 		fs.mkdirSync(destDir, {recursive: true});
 		console.log(`Created destination directory: ${destDir}`);
+	} else {
+		// Clean the destination directory
+		fs.rmSync(destDir, {recursive: true, force: true});
+		fs.mkdirSync(destDir, {recursive: true});
 	}
-
-	// Make sure it is empty (delete all files and directories if not)
-	fs.rmSync(destDir, {recursive: true, force: true});
-	fs.mkdirSync(destDir, {recursive: true});
 
 	// Start the conversion process
 	console.log("Starting conversion from Docusaurus to Nextra format...");

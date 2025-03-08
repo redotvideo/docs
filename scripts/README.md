@@ -64,3 +64,22 @@ This is an info block in the old docs.
 ```
 
 For now, we just remove these entirely. As you can see above, the possible keywords are `note`, `tip`, `info`, `caution`, `danger`, and `experimental`.
+
+### Directories that don't have mdx files
+
+If a directory doesn't have an mdx file, it should be ignored. As an example, we might have this situation:
+
+```
+docs-old/
+├── code/
+│   ├── filters-and-effects/
+│   │   ├── blur.tsx
+│   │   ├── brightness.tsx
+│   ├── tsconfig.json
+```
+
+In this case, we should not copy anything from the `code` directory and the \_meta.js file inside `docs-old` should not have anything related to the `code` directory.
+
+### Code blocks
+
+Code blocks sometimes use attributes like `mode=preview` or `title="src/project.ts"`. We should remove these attributes as they are not supported in Nextra.

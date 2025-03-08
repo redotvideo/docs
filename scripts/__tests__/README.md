@@ -29,6 +29,8 @@ The tests use a temporary directory structure created in `__tests__/test-data/` 
 -   `docs-old/`: Mock Docusaurus docs structure
 -   `docs-new/`: Output Nextra docs structure
 
+Test fixtures are stored in the `fixtures/` directory and are copied to the test directories during test execution.
+
 Each test creates sample files in the mock structure, runs the conversion, and then verifies the output.
 
 ## Adding New Tests

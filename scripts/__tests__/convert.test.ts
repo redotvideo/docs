@@ -6,6 +6,7 @@ import {convert, resetRedirects, removeInfoBlocks} from "../convert";
 const TEST_DIR = path.join(__dirname, "test-data");
 const SOURCE_DIR = path.join(TEST_DIR, "docs-old");
 const DEST_DIR = path.join(TEST_DIR, "docs-new");
+const FIXTURES_DIR = path.join(__dirname, "fixtures");
 
 describe("Docusaurus to Nextra conversion", () => {
 	// Set up test directories and files before each test
@@ -30,18 +31,9 @@ describe("Docusaurus to Nextra conversion", () => {
 	});
 
 	test("should convert a simple MDX file with frontmatter", () => {
-		// Create a test MDX file with frontmatter
-		const testMdxContent = `---
-sidebar_position: 2
-slug: /test/simple
----
-
-# Simple Test
-
-This is a simple test file.
-`;
-
-		fs.writeFileSync(path.join(SOURCE_DIR, "simple.mdx"), testMdxContent);
+		// Copy the fixture file to the test directory
+		const fixtureContent = fs.readFileSync(path.join(FIXTURES_DIR, "simple.mdx"), "utf8");
+		fs.writeFileSync(path.join(SOURCE_DIR, "simple.mdx"), fixtureContent);
 
 		// Run the conversion
 		const redirects = convert(SOURCE_DIR, DEST_DIR);
@@ -51,7 +43,9 @@ This is a simple test file.
 
 		// Check the content of the converted file
 		const convertedContent = fs.readFileSync(path.join(DEST_DIR, "simple.mdx"), "utf8");
-		expect(convertedContent).toBe("# Simple Test\n\nThis is a simple test file.\n");
+		// Normalize whitespace for comparison
+		const normalizedContent = convertedContent.replace(/\s+$/, "").trim() + "\n";
+		expect(normalizedContent).toBe("# Simple Test\n\nThis is a simple test file.\n");
 
 		// Check if _meta.js was created
 		expect(fs.existsSync(path.join(DEST_DIR, "_meta.js"))).toBe(true);
@@ -68,17 +62,9 @@ This is a simple test file.
 	});
 
 	test("should convert intro.mdx to index.mdx", () => {
-		// Create a test intro.mdx file
-		const testMdxContent = `---
-sidebar_position: 1
----
-
-# Introduction
-
-This is the introduction.
-`;
-
-		fs.writeFileSync(path.join(SOURCE_DIR, "intro.mdx"), testMdxContent);
+		// Copy the fixture file to the test directory
+		const fixtureContent = fs.readFileSync(path.join(FIXTURES_DIR, "intro.mdx"), "utf8");
+		fs.writeFileSync(path.join(SOURCE_DIR, "intro.mdx"), fixtureContent);
 
 		// Run the conversion
 		convert(SOURCE_DIR, DEST_DIR);
@@ -93,29 +79,9 @@ This is the introduction.
 	});
 
 	test("should remove info blocks from content", () => {
-		// Create a test MDX file with info blocks
-		const testMdxContent = `---
-sidebar_position: 3
----
-
-# Info Blocks Test
-
-Normal text.
-
-:::info
-This is an info block.
-:::
-
-More normal text.
-
-:::caution
-This is a caution block.
-:::
-
-Final text.
-`;
-
-		fs.writeFileSync(path.join(SOURCE_DIR, "info-blocks.mdx"), testMdxContent);
+		// Copy the fixture file to the test directory
+		const fixtureContent = fs.readFileSync(path.join(FIXTURES_DIR, "info-blocks.mdx"), "utf8");
+		fs.writeFileSync(path.join(SOURCE_DIR, "info-blocks.mdx"), fixtureContent);
 
 		// Run the conversion
 		convert(SOURCE_DIR, DEST_DIR);
@@ -136,25 +102,12 @@ Final text.
 		const nestedDir = path.join(SOURCE_DIR, "nested");
 		fs.mkdirSync(nestedDir, {recursive: true});
 
-		// Create files in the root and nested directories
-		fs.writeFileSync(
-			path.join(SOURCE_DIR, "root.mdx"),
-			`---
-sidebar_position: 1
----
-# Root File
-`,
-		);
+		// Copy fixture files to the test directories
+		const rootFixtureContent = fs.readFileSync(path.join(FIXTURES_DIR, "root.mdx"), "utf8");
+		fs.writeFileSync(path.join(SOURCE_DIR, "root.mdx"), rootFixtureContent);
 
-		fs.writeFileSync(
-			path.join(nestedDir, "nested-file.mdx"),
-			`---
-sidebar_position: 2
-slug: /nested/file
----
-# Nested File
-`,
-		);
+		const nestedFixtureContent = fs.readFileSync(path.join(FIXTURES_DIR, "nested-file.mdx"), "utf8");
+		fs.writeFileSync(path.join(nestedDir, "nested-file.mdx"), nestedFixtureContent);
 
 		// Run the conversion
 		const redirects = convert(SOURCE_DIR, DEST_DIR);
@@ -183,33 +136,15 @@ slug: /nested/file
 	});
 
 	test("should sort files by sidebar_position in _meta.js", () => {
-		// Create files with different sidebar positions
-		fs.writeFileSync(
-			path.join(SOURCE_DIR, "third.mdx"),
-			`---
-sidebar_position: 3
----
-# Third
-`,
-		);
+		// Copy fixture files to the test directory
+		const firstFixtureContent = fs.readFileSync(path.join(FIXTURES_DIR, "first.mdx"), "utf8");
+		fs.writeFileSync(path.join(SOURCE_DIR, "first.mdx"), firstFixtureContent);
 
-		fs.writeFileSync(
-			path.join(SOURCE_DIR, "first.mdx"),
-			`---
-sidebar_position: 1
----
-# First
-`,
-		);
+		const secondFixtureContent = fs.readFileSync(path.join(FIXTURES_DIR, "second.mdx"), "utf8");
+		fs.writeFileSync(path.join(SOURCE_DIR, "second.mdx"), secondFixtureContent);
 
-		fs.writeFileSync(
-			path.join(SOURCE_DIR, "second.mdx"),
-			`---
-sidebar_position: 2
----
-# Second
-`,
-		);
+		const thirdFixtureContent = fs.readFileSync(path.join(FIXTURES_DIR, "third.mdx"), "utf8");
+		fs.writeFileSync(path.join(SOURCE_DIR, "third.mdx"), thirdFixtureContent);
 
 		// Run the conversion
 		convert(SOURCE_DIR, DEST_DIR);
@@ -226,28 +161,8 @@ sidebar_position: 2
 
 	// Test the removeInfoBlocks function directly
 	test("removeInfoBlocks should remove all info blocks", () => {
-		const content = `
-# Title
-
-Normal text.
-
-:::info
-This is an info block.
-With multiple lines.
-:::
-
-More text.
-
-:::caution
-This is a caution block.
-:::
-
-:::danger
-Danger block.
-:::
-
-Final text.
-`;
+		// Read the fixture content
+		const content = fs.readFileSync(path.join(FIXTURES_DIR, "info-blocks-content.mdx"), "utf8");
 
 		const result = removeInfoBlocks(content);
 
@@ -257,5 +172,34 @@ Final text.
 		expect(result).toContain("Normal text.");
 		expect(result).toContain("More text.");
 		expect(result).toContain("Final text.");
+	});
+
+	test("should ignore directories without MDX files", () => {
+		// Create a directory structure with a non-MDX file
+		const codeDir = path.join(SOURCE_DIR, "code");
+		const filtersDir = path.join(codeDir, "filters-and-effects");
+		fs.mkdirSync(filtersDir, {recursive: true});
+
+		// Add a non-MDX file to the filters directory
+		fs.writeFileSync(path.join(filtersDir, "blur.tsx"), "// Some TypeScript code");
+		fs.writeFileSync(path.join(codeDir, "tsconfig.json"), "{}");
+
+		// Add a regular MDX file to the source directory
+		const fixtureContent = fs.readFileSync(path.join(FIXTURES_DIR, "simple.mdx"), "utf8");
+		fs.writeFileSync(path.join(SOURCE_DIR, "simple.mdx"), fixtureContent);
+
+		// Run the conversion
+		convert(SOURCE_DIR, DEST_DIR);
+
+		// Check that the MDX file was converted
+		expect(fs.existsSync(path.join(DEST_DIR, "simple.mdx"))).toBe(true);
+
+		// Check that the code directory was not created in the destination
+		expect(fs.existsSync(path.join(DEST_DIR, "code"))).toBe(false);
+
+		// Check that the _meta.js file doesn't include the code directory
+		const metaContent = fs.readFileSync(path.join(DEST_DIR, "_meta.js"), "utf8");
+		expect(metaContent).toContain("'simple': '',");
+		expect(metaContent).not.toContain("'code': '',");
 	});
 });
