@@ -37,6 +37,19 @@ export function removeInfoBlocks(content: string): string {
 }
 
 /**
+ * Remove attributes from code blocks
+ * Transforms ```language attribute1 attribute2 to ```language
+ */
+export function cleanCodeBlocks(content: string): string {
+	// Match code blocks with attributes and replace with clean code blocks
+	// This regex matches:
+	// 1. The opening backticks and language (```tsx)
+	// 2. Any attributes that follow (mode=preview title="src/project.ts")
+	// 3. The newline after the opening
+	return content.replace(/```([a-z]+)(\s+[^`\n]+)\n/g, "```$1\n");
+}
+
+/**
  * Process a Docusaurus MDX file and convert it to Nextra format
  */
 export function processMdxFile(sourcePath: string, destPath: string) {
@@ -64,7 +77,10 @@ export function processMdxFile(sourcePath: string, destPath: string) {
 	}
 
 	// Remove ::: blocks and clean up content
-	const cleanedContent = removeInfoBlocks(mdxContent);
+	let cleanedContent = removeInfoBlocks(mdxContent);
+
+	// Clean code blocks by removing attributes
+	cleanedContent = cleanCodeBlocks(cleanedContent);
 
 	// Write only the content without frontmatter
 	const destDir = path.dirname(destPath);

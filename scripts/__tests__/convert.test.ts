@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import {convert, resetRedirects, removeInfoBlocks} from "../convert";
+import {convert, resetRedirects, removeInfoBlocks, cleanCodeBlocks} from "../convert";
 
 // Test directory paths
 const TEST_DIR = path.join(__dirname, "test-data");
@@ -201,5 +201,42 @@ describe("Docusaurus to Nextra conversion", () => {
 		const metaContent = fs.readFileSync(path.join(DEST_DIR, "_meta.js"), "utf8");
 		expect(metaContent).toContain("'simple': '',");
 		expect(metaContent).not.toContain("'code': '',");
+	});
+
+	test("should remove attributes from code blocks", () => {
+		// Copy the fixture file to the test directory
+		const fixtureContent = fs.readFileSync(path.join(FIXTURES_DIR, "code-blocks.mdx"), "utf8");
+		fs.writeFileSync(path.join(SOURCE_DIR, "code-blocks.mdx"), fixtureContent);
+
+		// First test the cleanCodeBlocks function directly
+		const result = cleanCodeBlocks(fixtureContent);
+
+		// Check that attributes are removed by the function
+		expect(result).toContain("```tsx\n"); // No mode=preview or title
+		expect(result).not.toContain("mode=preview");
+		expect(result).not.toContain('title="src/project.ts"');
+
+		// Regular code block should remain unchanged
+		expect(result).toContain("```js\n");
+
+		// Second code block with attributes should also be cleaned
+		expect(result).toContain("```jsx\n");
+
+		// Now test the full conversion process
+		convert(SOURCE_DIR, DEST_DIR);
+
+		// Check the content of the converted file
+		const convertedContent = fs.readFileSync(path.join(DEST_DIR, "code-blocks.mdx"), "utf8");
+
+		// The code blocks should have their attributes removed in the converted file
+		expect(convertedContent).toContain("```tsx\n");
+		expect(convertedContent).not.toContain("mode=preview");
+		expect(convertedContent).not.toContain('title="src/project.ts"');
+
+		// Regular code block should remain unchanged
+		expect(convertedContent).toContain("```js\n");
+
+		// Second code block with attributes should also be cleaned
+		expect(convertedContent).toContain("```jsx\n");
 	});
 });
