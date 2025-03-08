@@ -2,18 +2,18 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 
-interface Redirect {
+export interface Redirect {
 	source: string;
 	destination: string;
 	permanent: boolean;
 }
 
-let redirects: Redirect[] = [];
+export let redirects: Redirect[] = [];
 
 /**
  * Create a _meta.js file for a directory
  */
-function createMetaFile(dirPath: string, items: string[]) {
+export function createMetaFile(dirPath: string, items: string[]) {
 	// Ensure the directory exists
 	if (!fs.existsSync(dirPath)) {
 		fs.mkdirSync(dirPath, {recursive: true});
@@ -30,7 +30,7 @@ ${items.map((item) => `  '${item}': '',`).join("\n")}
 /**
  * Remove ::: blocks from the content
  */
-function removeInfoBlocks(content: string): string {
+export function removeInfoBlocks(content: string): string {
 	// Match blocks that start with ::: and end with :::
 	// Using non-greedy match to handle multiple blocks
 	return content.replace(/:::[a-z]+\n([\s\S]*?):::/g, "");
@@ -39,7 +39,7 @@ function removeInfoBlocks(content: string): string {
 /**
  * Process a Docusaurus MDX file and convert it to Nextra format
  */
-function processMdxFile(sourcePath: string, destPath: string) {
+export function processMdxFile(sourcePath: string, destPath: string) {
 	// Read the source file
 	const content = fs.readFileSync(sourcePath, "utf8");
 
@@ -87,7 +87,7 @@ function processMdxFile(sourcePath: string, destPath: string) {
 /**
  * Process a directory recursively
  */
-function processDirectory(sourceDir: string, destDir: string) {
+export function processDirectory(sourceDir: string, destDir: string) {
 	// Delete the destination directory
 	fs.rmSync(destDir, {recursive: true, force: true});
 
@@ -165,26 +165,38 @@ function processDirectory(sourceDir: string, destDir: string) {
 	}
 }
 
+export function resetRedirects() {
+	redirects = [];
+}
+
+export function convert(sourceDir: string, destDir: string) {
+	// Make sure the destination directory exists
+	if (!fs.existsSync(destDir)) {
+		// Create the destination directory instead of throwing an error
+		fs.mkdirSync(destDir, {recursive: true});
+		console.log(`Created destination directory: ${destDir}`);
+	}
+
+	// Make sure it is empty (delete all files and directories if not)
+	fs.rmSync(destDir, {recursive: true, force: true});
+	fs.mkdirSync(destDir, {recursive: true});
+
+	// Start the conversion process
+	console.log("Starting conversion from Docusaurus to Nextra format...");
+	processDirectory(sourceDir, destDir);
+
+	// Return redirects for testing purposes
+	return redirects;
+}
+
 function main() {
 	// Source and destination directories
 	const ROOT_DIR = path.resolve(process.cwd(), "..");
 	const SOURCE_DIR = path.join(ROOT_DIR, "docs-old", "docs");
 	const DEST_DIR = path.join(ROOT_DIR, "src", "content");
 
-	// Make sure the destination directory exists
-	if (!fs.existsSync(DEST_DIR)) {
-		// Create the destination directory instead of throwing an error
-		fs.mkdirSync(DEST_DIR, {recursive: true});
-		console.log(`Created destination directory: ${DEST_DIR}`);
-	}
-
-	// Make sure it is empty (delete all files and directories if not)
-	fs.rmSync(DEST_DIR, {recursive: true, force: true});
-	fs.mkdirSync(DEST_DIR, {recursive: true});
-
-	// Start the conversion process
-	console.log("Starting conversion from Docusaurus to Nextra format...");
-	processDirectory(SOURCE_DIR, DEST_DIR);
+	// Run the conversion
+	const redirects = convert(SOURCE_DIR, DEST_DIR);
 
 	// Write out redirects
 	const redirectsPath = path.join(ROOT_DIR, "redirects.json");
@@ -194,4 +206,7 @@ function main() {
 	console.log("Conversion complete!");
 }
 
-main();
+// Only run main when this file is executed directly
+if (require.main === module) {
+	main();
+}

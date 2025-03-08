@@ -2,9 +2,30 @@
 
 This folder contains scripts to convert the old Revideo docs from their Docusaurus format to Nextra format. The old Docusaurus docs are located in the `docs-old` folder. The new Nexrtra docs are located in the /src/content/ folder. Example of the new docs structre with example content is in the `src/example-content` folder.
 
+## Running the Conversion
+
+To run the conversion script:
+
+```bash
+npm install  # Install dependencies (only needed once)
+npm run convert
+```
+
+## Testing
+
+The conversion script includes automated tests to ensure it works correctly. To run the tests:
+
+```bash
+npm test
+```
+
+See the [tests README](./__tests__/README.md) for more details on the test coverage.
+
+## Conversion Process
+
 This is what needs to be done:
 
-## Header
+### Header
 
 In the old docs, the header is like this:
 
@@ -32,7 +53,7 @@ export default {
 
 The keys are the names paths to the mdx files in the same folder as the \_meta.js file. The order of the keys is the order of the sidebar items. The values are custom descriptions for the sidebar items. If the values are empty, the description will be the `#` of the first heading in the mdx file.
 
-## `:::` blocks
+### `:::` blocks
 
 We use `:::` blocks to add notes, warnings, and other information to the docs. We need to convert these to `:::info` blocks in the new docs.
 
