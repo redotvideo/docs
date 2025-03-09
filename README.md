@@ -10,10 +10,16 @@ This is a work in progress.
 
 These are just some of the things that are currently missing:
 
--   [ ] Deploy to a temporarysubdomain (maybe new.docs.re.video)
--   [ ] Update header of nextra template and make it pretty
+-   [x] Deploy to a temporarysubdomain (maybe new.docs.re.video)
+-   [x] Change app to typescript
+-   [ ] Update header of nextra template and make it pretty,
+-   [ ] Update metadata in layout.jsx
+-   [ ] Remove blog while we don't have any content
 -   [ ] Fix order of sidebar
 -   [ ] Add redirects for old docs
 -   [ ] Fix preview of Revideo code
 -   [ ] Add search
 -   [ ] Add analytics
+-   [ ] Add blog content
+-   [ ] Add landing page
+-   [ ] Add sitemap
