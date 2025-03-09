@@ -1,20 +1,9 @@
----
-sidebar_position: 1
-slug: /installation-and-setup
----
-
 # Quickstart
 
 Let's install revideo with a sample project. To use revideo, make sure that you
 have [Node.js](https://nodejs.org/) version 16 or greater.
 
-:::info
 
-If you're on Linux, also make sure that you have nscd installed:
-`sudo apt-get install nscd`. You need this package for
-[ffmpeg](/common-issues/ffmpeg).
-
-:::
 
 ### Creating a new project
 
@@ -103,7 +92,6 @@ npm run render
 This will call the `./src/render.ts` script in your code:
 
 ```ts
-import {renderVideo} from '@revideo/renderer';
 
 async function render() {
   console.log('Rendering video...');
@@ -267,7 +255,7 @@ application. Press the play button to see the circle animate across the screen.
 Each video in Motion Canvas is represented by a project configuration object. In
 our example, this configuration is declared in `src/project.ts`:
 
-```ts title="src/project.ts"
+```ts
 import {makeProject} from '@revideo/core';
 
 import example from './scenes/example?scene';
@@ -299,7 +287,7 @@ scene.
 
 You can learn more about scenes, nodes, and this XML-like syntax in the
 [scene hierarchy](/hierarchy) section. For now, what's important is that,
-in our example, we add an individual [`<Circle/>`](/api/2d/components/Circle)
+in our example, we add an individual [``](/api/2d/components/Circle)
 node to our scene. We make it red, set its width and height as `140` pixels and
 position it `300` pixels left from the center:
 
@@ -440,10 +428,6 @@ happen at the same time. The [animation flow](/flow) section goes into more
 depth about generators and flow functions such as [`all`][all].
 
 This brings us back to our initial example:
-
-<CodeBlock language="tsx" title="src/scenes/example.tsx">
-  {source}
-</CodeBlock>
 
 */}
 

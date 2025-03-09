@@ -83,3 +83,28 @@ In this case, we should not copy anything from the `code` directory and the \_me
 ### Code blocks
 
 Code blocks sometimes use attributes like `mode=preview` or `title="src/project.ts"`. We should remove these attributes as they are not supported in Nextra.
+
+### React imports and components
+
+We use React components in the old docs. While we're working on migrating these, we should just strip them out.
+
+In this example page:
+
+````mdx
+import AnimationPlayer from "@site/src/components/AnimationPlayer";
+import ApiSnippet from "@site/src/components/Api/ApiSnippet";
+
+# Example Page
+
+This is an example paragraph.
+
+<AnimationPlayer name="layout" banner />
+
+This is example paragraph number 2.
+
+```tsx
+<Rect layout>
+	<Circle width={320} height={320} />
+</Rect>
+```
+````

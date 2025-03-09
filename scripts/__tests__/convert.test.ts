@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import {convert, resetRedirects, removeInfoBlocks, cleanCodeBlocks} from "../convert";
+import {convert, resetRedirects, removeInfoBlocks, cleanCodeBlocks, removeReactComponents} from "../convert";
 
 // Test directory paths
 const TEST_DIR = path.join(__dirname, "test-data");
@@ -238,5 +238,43 @@ describe("Docusaurus to Nextra conversion", () => {
 
 		// Second code block with attributes should also be cleaned
 		expect(convertedContent).toContain("```jsx\n");
+	});
+
+	test("should remove React imports and components", () => {
+		// Read the fixture files
+		const input = fs.readFileSync(path.join(FIXTURES_DIR, "react-components.mdx"), "utf8");
+		const expected = fs.readFileSync(path.join(FIXTURES_DIR, "react-components-expected.mdx"), "utf8");
+		const result = removeReactComponents(input);
+
+		console.log("input", input);
+		console.log("expected", expected);
+		console.log("result", result);
+
+		expect(result).toBe(expected);
+	});
+
+	test("should remove React components during full conversion", () => {
+		// Copy the fixture file to the test directory
+		const fixtureContent = fs.readFileSync(path.join(FIXTURES_DIR, "react-components.mdx"), "utf8");
+		fs.writeFileSync(path.join(SOURCE_DIR, "react-components.mdx"), fixtureContent);
+
+		// Run the conversion
+		convert(SOURCE_DIR, DEST_DIR);
+
+		// Check that the output file exists and has the correct content
+		const outputPath = path.join(DEST_DIR, "react-components.mdx");
+		expect(fs.existsSync(outputPath)).toBe(true);
+
+		const outputContent = fs.readFileSync(outputPath, "utf8");
+		const expectedContent = fs.readFileSync(path.join(FIXTURES_DIR, "react-components-expected.mdx"), "utf8");
+
+		// Print the actual output for debugging
+		console.log("Actual output content:");
+		console.log(outputContent);
+		console.log("Expected content:");
+		console.log(expectedContent);
+
+		// Compare the content (ignoring whitespace differences)
+		expect(outputContent.trim()).toBe(expectedContent.trim());
 	});
 });

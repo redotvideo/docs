@@ -1,7 +1,11 @@
 export default {
-  index: '',
-  'get-started': '',
-  features: '',
-  themes: '',
-  advanced: ''
+  'index': '',
+  'api-reference': '',
+  'code-snippets': '',
+  'common-issues': '',
+  'get-help': '',
+  'guide': '',
+  'motion-canvas': '',
+  'platform': '',
+  'upgrading': '',
 }

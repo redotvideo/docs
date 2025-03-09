@@ -46,7 +46,47 @@ export function cleanCodeBlocks(content: string): string {
 	// 1. The opening backticks and language (```tsx)
 	// 2. Any attributes that follow (mode=preview title="src/project.ts")
 	// 3. The newline after the opening
-	return content.replace(/```([a-z]+)(\s+[^`\n]+)\n/g, "```$1\n");
+	return content.replace(/```([a-z]+)[^\S\r\n]+(.*)\n/g, "```$1\n");
+}
+
+/**
+ * Remove React imports and component usage from MDX content
+ *
+ * This function removes all import statements from a file that aren't inside of
+ * code blocks.
+ *
+ * It also removes all component usage from the file that isn't inside of code blocks.
+ */
+export function removeReactComponents(content: string): string {
+	// Split the content by code blocks to avoid modifying content inside code blocks
+	const parts = content.split(/(```[^`]+```)/g);
+
+	// Process each part - if it's a code block, leave it as is; otherwise, remove imports and components
+	const processedParts = parts.map((part) => {
+		// If this is a code block, leave it unchanged
+		if (part.startsWith("```") && part.endsWith("```")) {
+			console.log("identified code block", part);
+			return part;
+		}
+
+		// Remove import statements
+		let processed = part.replace(/^import\s+.*?from\s+["'].*?["'];?\s*$/gm, "");
+
+		// Remove React component tags (matches <ComponentName props... /> or <ComponentName>...</ComponentName>)
+		// First, handle self-closing tags
+		processed = processed.replace(/<[A-Z][A-Za-z0-9]*(\s+[^>]*?)?\s*\/>\s*/g, "");
+
+		// Then handle opening/closing tag pairs
+		processed = processed.replace(/<[A-Z][A-Za-z0-9]*(\s+[^>]*?)?>(.*?)<\/[A-Z][A-Za-z0-9]*>\s*/gs, "");
+
+		return processed;
+	});
+
+	// Get rid of leading and trailing newlines
+	const joined = processedParts.join("").replace(/^\s+|\s+$/g, "");
+
+	// Add a trailing newline
+	return joined + "\n";
 }
 
 /**
@@ -79,8 +119,17 @@ export function processMdxFile(sourcePath: string, destPath: string) {
 	// Remove ::: blocks and clean up content
 	let cleanedContent = removeInfoBlocks(mdxContent);
 
+	console.log("before before", cleanedContent);
+
 	// Clean code blocks by removing attributes
 	cleanedContent = cleanCodeBlocks(cleanedContent);
+
+	console.log("before", cleanedContent);
+
+	// Remove React imports and components
+	cleanedContent = removeReactComponents(cleanedContent);
+
+	console.log("after", cleanedContent);
 
 	// Write only the content without frontmatter
 	const destDir = path.dirname(destPath);
