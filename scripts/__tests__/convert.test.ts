@@ -246,10 +246,6 @@ describe("Docusaurus to Nextra conversion", () => {
 		const expected = fs.readFileSync(path.join(FIXTURES_DIR, "react-components-expected.mdx"), "utf8");
 		const result = removeReactComponents(input);
 
-		console.log("input", input);
-		console.log("expected", expected);
-		console.log("result", result);
-
 		expect(result).toBe(expected);
 	});
 
@@ -267,12 +263,6 @@ describe("Docusaurus to Nextra conversion", () => {
 
 		const outputContent = fs.readFileSync(outputPath, "utf8");
 		const expectedContent = fs.readFileSync(path.join(FIXTURES_DIR, "react-components-expected.mdx"), "utf8");
-
-		// Print the actual output for debugging
-		console.log("Actual output content:");
-		console.log(outputContent);
-		console.log("Expected content:");
-		console.log(expectedContent);
 
 		// Compare the content (ignoring whitespace differences)
 		expect(outputContent.trim()).toBe(expectedContent.trim());

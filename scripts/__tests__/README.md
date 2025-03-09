@@ -11,17 +11,6 @@ npm install  # Install dependencies (only needed once)
 npm test     # Run the tests
 ```
 
-## Test Coverage
-
-The tests cover the following functionality:
-
-1. **Basic Conversion**: Tests that MDX files are properly converted with frontmatter removed
-2. **Intro to Index Conversion**: Tests that `intro.mdx` files are renamed to `index.mdx`
-3. **Info Block Removal**: Tests that `:::info`, `:::caution`, and other similar blocks are removed
-4. **Directory Structure**: Tests that nested directories are properly processed
-5. **Sidebar Position**: Tests that files are sorted by `sidebar_position` in the generated `_meta.js` files
-6. **Redirects**: Tests that redirects are properly generated from slugs
-
 ## Test Structure
 
 The tests use a temporary directory structure created in `__tests__/test-data/` with:

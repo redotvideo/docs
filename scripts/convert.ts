@@ -65,7 +65,6 @@ export function removeReactComponents(content: string): string {
 	const processedParts = parts.map((part) => {
 		// If this is a code block, leave it unchanged
 		if (part.startsWith("```") && part.endsWith("```")) {
-			console.log("identified code block", part);
 			return part;
 		}
 
@@ -119,17 +118,11 @@ export function processMdxFile(sourcePath: string, destPath: string) {
 	// Remove ::: blocks and clean up content
 	let cleanedContent = removeInfoBlocks(mdxContent);
 
-	console.log("before before", cleanedContent);
-
 	// Clean code blocks by removing attributes
 	cleanedContent = cleanCodeBlocks(cleanedContent);
 
-	console.log("before", cleanedContent);
-
 	// Remove React imports and components
 	cleanedContent = removeReactComponents(cleanedContent);
-
-	console.log("after", cleanedContent);
 
 	// Write only the content without frontmatter
 	const destDir = path.dirname(destPath);
