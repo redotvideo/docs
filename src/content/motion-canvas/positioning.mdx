@@ -59,7 +59,13 @@ We access the absolute position (position in world space) of `circleA` and
 assign it as the absolute position of `circleB`. This will move the `circleB`
 right on top of `circleA`.
 
-
+> [!NOTE]
+>
+> Note that we still need to set the `absolutePosition` of `circleB` and not just
+> the `position`. It may seem redundant since `circleB` is a direct child of the
+> scene view. But the local space of the scene view is **not** the same as the
+> world space.
+>
 
 All available world-space properties are listed below:
 

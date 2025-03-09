@@ -29,7 +29,23 @@ case there's only one valid descendant: `<Circle>`). The layout root itself is
 treated differently than its children - its size is controlled by Flexbox, but
 the position stays unaffected.
 
-
+> [!NOTE]
+>
+> Just setting the `layout` property doesn't always turn the node into a layout
+> root. If the node is already a part of the layout, it will be treated like the
+> rest of the descendants:
+> 
+> ```tsx
+> // ↓ layout root
+> <Rect layout>
+>   {/* ↓ layout child, NOT a layout root */}
+>   <Rect layout>
+>     {/* ↓ layout child */}
+>     <Circle width={320} height={320} />
+>   </Rect>
+> </Rect>
+> ```
+>
 
 ## Size and offset
 

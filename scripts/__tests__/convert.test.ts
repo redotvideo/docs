@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import {convert, resetRedirects, removeInfoBlocks, cleanCodeBlocks, removeReactComponents} from "../convert";
+import {convert, resetRedirects, cleanCodeBlocks, removeReactComponents} from "../convert";
 
 // Test directory paths
 const TEST_DIR = path.join(__dirname, "test-data");
@@ -78,7 +78,7 @@ describe("Docusaurus to Nextra conversion", () => {
 		expect(metaContent).toContain("'index': '',");
 	});
 
-	test("should remove info blocks from content", () => {
+	test("should convert info blocks to Nextra callouts", () => {
 		// Copy the fixture file to the test directory
 		const fixtureContent = fs.readFileSync(path.join(FIXTURES_DIR, "info-blocks.mdx"), "utf8");
 		fs.writeFileSync(path.join(SOURCE_DIR, "info-blocks.mdx"), fixtureContent);
@@ -88,13 +88,10 @@ describe("Docusaurus to Nextra conversion", () => {
 
 		// Check the content of the converted file
 		const convertedContent = fs.readFileSync(path.join(DEST_DIR, "info-blocks.mdx"), "utf8");
+		const expectedContent = fs.readFileSync(path.join(FIXTURES_DIR, "info-blocks-expected.mdx"), "utf8");
 
-		// The info blocks should be removed
-		expect(convertedContent).not.toContain(":::info");
-		expect(convertedContent).not.toContain(":::caution");
-		expect(convertedContent).toContain("Normal text.");
-		expect(convertedContent).toContain("More normal text.");
-		expect(convertedContent).toContain("Final text.");
+		// Compare the content (ignoring whitespace differences)
+		expect(convertedContent.trim()).toBe(expectedContent.trim());
 	});
 
 	test("should process nested directories", () => {
@@ -157,21 +154,6 @@ describe("Docusaurus to Nextra conversion", () => {
 
 		// Check if files are ordered by sidebar_position
 		expect(fileOrder).toEqual(["first", "second", "third"]);
-	});
-
-	// Test the removeInfoBlocks function directly
-	test("removeInfoBlocks should remove all info blocks", () => {
-		// Read the fixture content
-		const content = fs.readFileSync(path.join(FIXTURES_DIR, "info-blocks-content.mdx"), "utf8");
-
-		const result = removeInfoBlocks(content);
-
-		expect(result).not.toContain(":::info");
-		expect(result).not.toContain(":::caution");
-		expect(result).not.toContain(":::danger");
-		expect(result).toContain("Normal text.");
-		expect(result).toContain("More text.");
-		expect(result).toContain("Final text.");
 	});
 
 	test("should ignore directories without MDX files", () => {

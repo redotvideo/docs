@@ -28,12 +28,32 @@ ${items.map((item) => `  '${item}': '',`).join("\n")}
 }
 
 /**
- * Remove ::: blocks from the content
+ * Convert ::: blocks to Nextra callouts
  */
-export function removeInfoBlocks(content: string): string {
+export function convertInfoBlocks(content: string): string {
+	// Map of Docusaurus block types to Nextra callout types
+	const blockTypeMap: Record<string, string> = {
+		note: "NOTE",
+		tip: "TIP",
+		info: "NOTE",
+		caution: "CAUTION",
+		danger: "WARNING",
+		experimental: "IMPORTANT",
+	};
+
 	// Match blocks that start with ::: and end with :::
 	// Using non-greedy match to handle multiple blocks
-	return content.replace(/:::[a-z]+\n([\s\S]*?):::/g, "");
+	return content.replace(/:::([\w]+)\n([\s\S]*?):::/g, (_, type, blockContent) => {
+		const calloutType = blockTypeMap[type.toLowerCase()] || type.toUpperCase();
+		// Format the content: add > prefix to each line and ensure proper spacing
+		const formattedContent = blockContent
+			.trim()
+			.split("\n")
+			.map((line: string) => `> ${line}`)
+			.join("\n");
+
+		return `> [!${calloutType}]\n>\n${formattedContent}\n>`;
+	});
 }
 
 /**
@@ -116,7 +136,7 @@ export function processMdxFile(sourcePath: string, destPath: string) {
 	}
 
 	// Remove ::: blocks and clean up content
-	let cleanedContent = removeInfoBlocks(mdxContent);
+	let cleanedContent = convertInfoBlocks(mdxContent);
 
 	// Clean code blocks by removing attributes
 	cleanedContent = cleanCodeBlocks(cleanedContent);

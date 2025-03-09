@@ -54,6 +54,12 @@ export default makeScene2D(function* (view) {
 });
 ```
 
+> [!CAUTION]
+>
+> Make sure to add nodes to the view before yielding the transition generator.
+> Otherwise, your scene will remain empty until the transition ends.
+>
+
 All available transitions are listed below:
 
 ### `slideTransition`

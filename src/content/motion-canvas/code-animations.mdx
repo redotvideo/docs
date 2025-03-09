@@ -69,7 +69,22 @@ Now all `Code` nodes in your project will use `@lezer/javascript` to parse and
 highlight the snippets. If you want to use more than one language, check out the
 [Multiple Languages](#multiple-languages) section.
 
-
+> [!NOTE]
+>
+> Note that, by default, the JavaScript parser doesn't support JSX or TypeScript.
+> You can enable support for these via [dialects][dialects]. The dialects
+> available for a given parser are usually listed in the documentation of the
+> grammar package.
+> 
+> ```ts
+> Code.defaultHighlighter = new LezerHighlighter(
+>   parser.configure({
+>     // Provide a space-separated list of dialects to enable:
+>     dialect: 'jsx ts',
+>   }),
+> );
+> ```
+>
 
 ## Defining Code
 

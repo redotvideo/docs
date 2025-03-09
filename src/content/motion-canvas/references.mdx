@@ -15,7 +15,13 @@ view.add(circle);
 yield * circle.scale(2, 0.3);
 ```
 
-
+> [!NOTE]
+>
+> If you're used to libraries such as React, the above example may seem strange.
+> In Motion Canvas, the JSX components immediately create and return an instance
+> of the given class. It's completely valid to store it as a reference and use it
+> throughout the animation.
+>
 
 But this approach doesn't scale well. The more nodes we add, the harder it gets
 to see the overall structure of our scene. Consider the following example:
@@ -187,7 +193,11 @@ view.add(
 This time we don't specify the index. Whenever we pass the `circles` array to
 the `ref` property, the newly created circle will be appended to our array.
 
-
+> [!TIP]
+>
+> Check out [the looping section in the flow guide](/flow#looping) to see how an
+> array of references can be used to orchestrate animations.
+>
 
 ### Custom functions
 

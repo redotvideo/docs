@@ -55,7 +55,7 @@ The keys are the names paths to the mdx files in the same folder as the \_meta.j
 
 ### `:::` blocks
 
-We use `:::` blocks to add notes, warnings, and other information to the docs. We need to convert these to `:::info` blocks in the new docs.
+We use `:::` blocks to add notes, warnings, and other information to the docs. These need to be converted to Nextra's callout syntax. For example, this block in the old docs:
 
 ```mdx
 :::info
@@ -63,7 +63,22 @@ This is an info block in the old docs.
 :::
 ```
 
-For now, we just remove these entirely. As you can see above, the possible keywords are `note`, `tip`, `info`, `caution`, `danger`, and `experimental`.
+Should be converted to:
+
+```mdx
+> [!INFO]
+>
+> This is an info block in the old docs.
+```
+
+The mapping of block types is as follows:
+
+-   `:::note` → `> [!NOTE]`
+-   `:::tip` → `> [!TIP]`
+-   `:::info` → `> [!INFO]`
+-   `:::caution` → `> [!CAUTION]`
+-   `:::danger` → `> [!DANGER]`
+-   `:::experimental` → `> [!WARNING]` (we map experimental to warning as it's the closest match)
 
 ### Directories that don't have mdx files
 
