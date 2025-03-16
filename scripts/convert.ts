@@ -111,7 +111,7 @@ export function removeReactComponents(content: string): string {
 /**
  * Process a Docusaurus MDX file and convert it to Nextra format
  */
-export function processMdxFile(sourcePath: string, destPath: string) {
+export function processMdxFile(sourcePath: string, destPath: string, rootDestDir: string) {
 	// Read the source file
 	const content = fs.readFileSync(sourcePath, "utf8");
 
@@ -121,12 +121,13 @@ export function processMdxFile(sourcePath: string, destPath: string) {
 	// Handle redirects if slug is present
 	if (frontmatter.slug) {
 		const oldPath = frontmatter.slug.startsWith("/") ? frontmatter.slug : `/${frontmatter.slug}`;
+		const relativePath = path.relative(rootDestDir, destPath);
 		const newPath =
 			"/" +
-			path
-				.relative(process.cwd(), destPath)
+			relativePath
 				.replace(/^src\/content\//, "")
-				.replace(/\.(mdx?|jsx?)$/, "");
+				.replace(/\.(mdx?|jsx?)$/, "")
+				.replace(/index$/, "");
 
 		redirects.push({
 			source: oldPath,
@@ -196,8 +197,12 @@ export function directoryContainsMdx(dirPath: string): boolean {
 
 /**
  * Process a directory recursively
+ *
+ * @param sourceDir - The source directory to process
+ * @param destDir - The destination directory to write to
+ * @param rootDestDir - The destination directory we started with
  */
-export function processDirectory(sourceDir: string, destDir: string) {
+export function processDirectory(sourceDir: string, destDir: string, rootDestDir: string) {
 	// Read the directory contents
 	const items = fs.readdirSync(sourceDir);
 
@@ -221,7 +226,7 @@ export function processDirectory(sourceDir: string, destDir: string) {
 
 		if (isDirectory && directoryContainsMdx(sourcePath)) {
 			const destSubDir = path.join(destDir, item);
-			processDirectory(sourcePath, destSubDir);
+			processDirectory(sourcePath, destSubDir, rootDestDir);
 			directories.push(item);
 			continue;
 		}
@@ -248,7 +253,7 @@ export function processDirectory(sourceDir: string, destDir: string) {
 		const destPath = path.join(destDir, destFileName);
 
 		// Process the file and get its frontmatter
-		const frontmatter = processMdxFile(sourcePath, destPath);
+		const frontmatter = processMdxFile(sourcePath, destPath, rootDestDir);
 
 		// Add to files array with position if available
 		files.push({
@@ -298,7 +303,7 @@ export function convert(sourceDir: string, destDir: string) {
 
 	// Start the conversion process
 	console.log("Starting conversion from Docusaurus to Nextra format...");
-	processDirectory(sourceDir, destDir);
+	processDirectory(sourceDir, destDir, destDir);
 
 	// Return redirects for testing purposes
 	return redirects;

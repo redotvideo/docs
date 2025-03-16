@@ -232,4 +232,28 @@ describe("Docusaurus to Nextra conversion", () => {
 		// Compare the content (ignoring whitespace differences)
 		expect(outputContent.trim()).toBe(expectedContent.trim());
 	});
+
+	test("should correctly create the redirects array", () => {
+		// Create a directory structure with files
+		const nestedDir = path.join(SOURCE_DIR, "nested");
+		fs.mkdirSync(nestedDir, {recursive: true});
+
+		// Copy fixture files to the test directories
+		const simpleContent = fs.readFileSync(path.join(FIXTURES_DIR, "simple.mdx"), "utf8");
+		const codeBlocksContent = fs.readFileSync(path.join(FIXTURES_DIR, "code-blocks.mdx"), "utf8");
+
+		fs.writeFileSync(path.join(SOURCE_DIR, "index.mdx"), simpleContent);
+		fs.writeFileSync(path.join(nestedDir, "code-blocks.mdx"), codeBlocksContent);
+
+		// Run the conversion
+		const redirects = convert(SOURCE_DIR, DEST_DIR);
+
+		// Check the redirects array
+		console.log(redirects);
+		expect(redirects.length).toBe(2);
+		expect(redirects[0].source).toBe("/test/simple");
+		expect(redirects[0].destination).toBe("/");
+		expect(redirects[1].source).toBe("/test/code-blocks");
+		expect(redirects[1].destination).toBe("/nested/code-blocks");
+	});
 });
