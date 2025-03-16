@@ -244,16 +244,15 @@ export function processDirectory(sourceDir: string, destDir: string) {
 		const baseName = item.replace(/\.(mdx|md)$/, "");
 
 		// Special case for index files
-		const destFileName = baseName === "intro" ? "index.mdx" : `${baseName}.mdx`;
+		const destFileName = `${baseName}.mdx`;
 		const destPath = path.join(destDir, destFileName);
 
 		// Process the file and get its frontmatter
 		const frontmatter = processMdxFile(sourcePath, destPath);
 
 		// Add to files array with position if available
-		const fileName = baseName === "intro" ? "index" : baseName;
 		files.push({
-			name: fileName,
+			name: baseName,
 			position: frontmatter.sidebar_position,
 		});
 	}

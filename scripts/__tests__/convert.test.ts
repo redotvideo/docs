@@ -61,23 +61,6 @@ describe("Docusaurus to Nextra conversion", () => {
 		expect(redirects[0].permanent).toBe(true);
 	});
 
-	test("should convert intro.mdx to index.mdx", () => {
-		// Copy the fixture file to the test directory
-		const fixtureContent = fs.readFileSync(path.join(FIXTURES_DIR, "intro.mdx"), "utf8");
-		fs.writeFileSync(path.join(SOURCE_DIR, "intro.mdx"), fixtureContent);
-
-		// Run the conversion
-		convert(SOURCE_DIR, DEST_DIR);
-
-		// Check if index.mdx was created (not intro.mdx)
-		expect(fs.existsSync(path.join(DEST_DIR, "index.mdx"))).toBe(true);
-		expect(fs.existsSync(path.join(DEST_DIR, "intro.mdx"))).toBe(false);
-
-		// Check the content of _meta.js
-		const metaContent = fs.readFileSync(path.join(DEST_DIR, "_meta.js"), "utf8");
-		expect(metaContent).toContain("'index': '',");
-	});
-
 	test("should convert info blocks to Nextra callouts", () => {
 		// Copy the fixture file to the test directory
 		const fixtureContent = fs.readFileSync(path.join(FIXTURES_DIR, "info-blocks.mdx"), "utf8");
