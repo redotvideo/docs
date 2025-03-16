@@ -123,3 +123,7 @@ This is example paragraph number 2.
 </Rect>
 ```
 ````
+
+### Links between pages
+
+Right now when linking to another page from an old page, we use the url from the slug (found at the top of the mdx file). Nextra uses the folder structure to determine the url. We need to update all the links to use the new folder structure.

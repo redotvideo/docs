@@ -61,22 +61,22 @@ describe("Docusaurus to Nextra conversion", () => {
 		expect(redirects[0].permanent).toBe(true);
 	});
 
-	test("should convert intro.mdx to index.mdx", () => {
-		// Copy the fixture file to the test directory
-		const fixtureContent = fs.readFileSync(path.join(FIXTURES_DIR, "intro.mdx"), "utf8");
-		fs.writeFileSync(path.join(SOURCE_DIR, "intro.mdx"), fixtureContent);
+	// test("should convert intro.mdx to index.mdx", () => {
+	// // Copy the fixture file to the test directory
+	// const fixtureContent = fs.readFileSync(path.join(FIXTURES_DIR, "intro.mdx"), "utf8");
+	// fs.writeFileSync(path.join(SOURCE_DIR, "intro.mdx"), fixtureContent);
 
-		// Run the conversion
-		convert(SOURCE_DIR, DEST_DIR);
+	// // Run the conversion
+	// convert(SOURCE_DIR, DEST_DIR);
 
-		// Check if index.mdx was created (not intro.mdx)
-		expect(fs.existsSync(path.join(DEST_DIR, "index.mdx"))).toBe(true);
-		expect(fs.existsSync(path.join(DEST_DIR, "intro.mdx"))).toBe(false);
+	// // Check if index.mdx was created (not intro.mdx)
+	// expect(fs.existsSync(path.join(DEST_DIR, "index.mdx"))).toBe(true);
+	// expect(fs.existsSync(path.join(DEST_DIR, "intro.mdx"))).toBe(false);
 
-		// Check the content of _meta.js
-		const metaContent = fs.readFileSync(path.join(DEST_DIR, "_meta.js"), "utf8");
-		expect(metaContent).toContain("'index': '',");
-	});
+	// // Check the content of _meta.js
+	// const metaContent = fs.readFileSync(path.join(DEST_DIR, "_meta.js"), "utf8");
+	// expect(metaContent).toContain("'index': '',");
+	// });
 
 	test("should convert info blocks to Nextra callouts", () => {
 		// Copy the fixture file to the test directory
@@ -248,5 +248,53 @@ describe("Docusaurus to Nextra conversion", () => {
 
 		// Compare the content (ignoring whitespace differences)
 		expect(outputContent.trim()).toBe(expectedContent.trim());
+	});
+
+	test("should convert links between pages to use new path structure", () => {
+		// Create a nested directory structure with linked files
+		const animationDir = path.join(SOURCE_DIR, "animation");
+		const utilsDir = path.join(SOURCE_DIR, "utils");
+		fs.mkdirSync(animationDir, {recursive: true});
+		fs.mkdirSync(utilsDir, {recursive: true});
+
+		// Copy fixture files to test directories
+		const mainPageContent = fs.readFileSync(path.join(FIXTURES_DIR, "/links/links-index.mdx"), "utf8");
+		const animationPageContent = fs.readFileSync(path.join(FIXTURES_DIR, "/links/links-animation.mdx"), "utf8");
+		const utilsPageContent = fs.readFileSync(path.join(FIXTURES_DIR, "/links/links-utils.mdx"), "utf8");
+
+		fs.writeFileSync(path.join(SOURCE_DIR, "index.mdx"), mainPageContent);
+		fs.writeFileSync(path.join(animationDir, "intro.mdx"), animationPageContent);
+		fs.writeFileSync(path.join(utilsDir, "helpers.mdx"), utilsPageContent);
+
+		// According to new path sctructures, the file urls are now `/`, `/animation/intro`, and `/utils/helpers`
+
+		// Run the conversion
+		const redirects = convert(SOURCE_DIR, DEST_DIR);
+		console.log("redirects", redirects);
+
+		// Check if files were created with correct structure
+		expect(fs.existsSync(path.join(DEST_DIR, "index.mdx"))).toBe(true);
+		expect(fs.existsSync(path.join(DEST_DIR, "animation", "intro.mdx"))).toBe(true);
+		expect(fs.existsSync(path.join(DEST_DIR, "utils", "helpers.mdx"))).toBe(true);
+
+		// Check content of converted files
+		const convertedMainContent = fs.readFileSync(path.join(DEST_DIR, "index.mdx"), "utf8");
+		const convertedAnimationContent = fs.readFileSync(path.join(DEST_DIR, "animation", "intro.mdx"), "utf8");
+		const convertedUtilsContent = fs.readFileSync(path.join(DEST_DIR, "utils", "helpers.mdx"), "utf8");
+
+		// // Compare with expected output
+		const expectedMainContent = fs.readFileSync(path.join(FIXTURES_DIR, "/links/links-index-expected.mdx"), "utf8");
+		const expectedAnimationContent = fs.readFileSync(
+			path.join(FIXTURES_DIR, "/links/links-animation-expected.mdx"),
+			"utf8",
+		);
+		const expectedUtilsContent = fs.readFileSync(
+			path.join(FIXTURES_DIR, "/links/links-utils-expected.mdx"),
+			"utf8",
+		);
+
+		expect(convertedMainContent.trim()).toBe(expectedMainContent.trim());
+		expect(convertedAnimationContent.trim()).toBe(expectedAnimationContent.trim());
+		expect(convertedUtilsContent.trim()).toBe(expectedUtilsContent.trim());
 	});
 });

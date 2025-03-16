@@ -109,9 +109,44 @@ export function removeReactComponents(content: string): string {
 }
 
 /**
- * Process a Docusaurus MDX file and convert it to Nextra format
+ * Convert links in MDX content to use the new path structure
  */
-export function processMdxFile(sourcePath: string, destPath: string) {
+export function convertLinks(content: string, sourcePath: string, destPath: string): string {
+	// Regex to match markdown links in the format [text](url)
+	// Captures the link text and URL in separate groups
+	const markdownLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+
+	return content.replace(markdownLinkRegex, (match, text, link) => {
+		// Skip external links and anchor links
+		if (link.startsWith("http") || link.startsWith("#")) {
+			return match;
+		}
+
+		// Non-relative links are left unchanged
+		if (!link.startsWith("/")) {
+			return match;
+		}
+
+		// Look up the link in the redirects array
+		const redirect = redirects.find((r) => r.source === link);
+		if (redirect) {
+			return `[${text}](${redirect.destination})`;
+		}
+
+		return match;
+	});
+}
+
+/**
+ * Process a Docusaurus MDX file and convert it to Nextra format
+ *
+ * @param sourcePath - The path to the source file
+ * @param destDir - The destination directory
+ * @param relativeDestPath - The relative destination path starting from the root of the destination directory
+ */
+export function processMdxFile(sourcePath: string, destDir: string, relativeDestPath: string) {
+	console.log("processing", sourcePath, destDir, relativeDestPath);
+
 	// Read the source file
 	const content = fs.readFileSync(sourcePath, "utf8");
 
@@ -123,10 +158,10 @@ export function processMdxFile(sourcePath: string, destPath: string) {
 		const oldPath = frontmatter.slug.startsWith("/") ? frontmatter.slug : `/${frontmatter.slug}`;
 		const newPath =
 			"/" +
-			path
-				.relative(process.cwd(), destPath)
+			relativeDestPath
 				.replace(/^src\/content\//, "")
-				.replace(/\.(mdx?|jsx?)$/, "");
+				.replace(/\.(mdx?|jsx?)$/, "")
+				.replace(/index$/, "");
 
 		redirects.push({
 			source: oldPath,
@@ -144,19 +179,23 @@ export function processMdxFile(sourcePath: string, destPath: string) {
 	// Remove React imports and components
 	cleanedContent = removeReactComponents(cleanedContent);
 
+	// Convert links to use new path structure
+	cleanedContent = convertLinks(cleanedContent, sourcePath, relativeDestPath);
+
 	// Write only the content without frontmatter
-	const destDir = path.dirname(destPath);
-	if (!fs.existsSync(destDir)) {
-		fs.mkdirSync(destDir, {recursive: true});
+	const fullDestPath = path.join(destDir, relativeDestPath);
+	const fullDestDir = path.dirname(fullDestPath);
+	if (!fs.existsSync(fullDestDir)) {
+		fs.mkdirSync(fullDestDir, {recursive: true});
 	}
 
 	// Remove any empty lines at the start of cleanedContent
 	const finalContent = cleanedContent.replace(/^\s+/, "");
-	fs.writeFileSync(destPath, finalContent);
+	fs.writeFileSync(fullDestPath, finalContent);
 
 	// Get relative paths for logging
 	const sourceRelative = path.relative(process.cwd(), sourcePath);
-	const destRelative = path.relative(process.cwd(), destPath);
+	const destRelative = path.relative(process.cwd(), fullDestPath);
 	console.log(`Converted: ${sourceRelative} -> ${destRelative}`);
 
 	return frontmatter;
@@ -244,14 +283,15 @@ export function processDirectory(sourceDir: string, destDir: string) {
 		const baseName = item.replace(/\.(mdx|md)$/, "");
 
 		// Special case for index files
-		const destFileName = baseName === "intro" ? "index.mdx" : `${baseName}.mdx`;
-		const destPath = path.join(destDir, destFileName);
+		//const destFileName = baseName === "intro" ? "index.mdx" : `${baseName}.mdx`;
+		const destFileName = `${baseName}.mdx`;
 
 		// Process the file and get its frontmatter
-		const frontmatter = processMdxFile(sourcePath, destPath);
+		const frontmatter = processMdxFile(sourcePath, destDir, destFileName);
 
 		// Add to files array with position if available
-		const fileName = baseName === "intro" ? "index" : baseName;
+		// const fileName = baseName === "intro" ? "index" : baseName;
+		const fileName = baseName;
 		files.push({
 			name: fileName,
 			position: frontmatter.sidebar_position,
